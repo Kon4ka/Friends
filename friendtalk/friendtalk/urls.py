@@ -16,10 +16,15 @@ Including another URLconf
 """
 from django.contrib import admin
 from django.urls import path
-from chat.views import RegisterUser
+from django.contrib.auth import views as auth_views
+from chat.views import RegisterUser, ProfileView, add_friend
+
 
 urlpatterns = [
     path('admin/', admin.site.urls),
+    path("login/", auth_views.LoginView.as_view(), name="login"),
     path("register/", RegisterUser.as_view(), name="register"),
+    path('add-friend/', add_friend, name='add_friend'),
+    path('accounts/profile/', ProfileView.as_view(), name ='profile'),
 
 ]

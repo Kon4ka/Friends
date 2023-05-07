@@ -16,6 +16,9 @@
   </div>
   <div id="footer">
     <p>© 2021 Все права защищены</p>
+    {% if user.is_authenticated %}
+      <p>Текущий пользователь: {{ user.username }}</p>
+    {% endif %}
   </div>
 </body>
 </html>

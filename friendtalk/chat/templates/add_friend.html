@@ -1,0 +1,15 @@
+{% extends 'base_site.html' %}
+
+{% block content %}
+  <h2>Add Friend</h2>
+  <form method="post">
+    {% csrf_token %}
+    <label for="friend_id">Select a friend:</label>
+    <select name="friend_id" id="friend_id">
+      {% for friend in friends %}
+        <option value="{{ friend.id }}">{{ friend.username }}</option>
+      {% endfor %}
+    </select>
+    <button type="submit">Add Friend</button>
+  </form>
+{% endblock %}
