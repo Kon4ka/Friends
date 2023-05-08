@@ -26,20 +26,37 @@ def add_friend(request):
         friend_id = request.POST.get('friend_id')
         friend = User.objects.get(id=friend_id)
         # Проверяем, есть ли уже такая запись в базе данных
-        friend_request, created = FriendRequest.objects.get_or_create(from_user=request.user, to_user=friend)
-        # Если запись была создана, то перенаправляем на профиль
-        if created:
-            return redirect('profile')
+        friend_request = FriendRequest.objects.filter(from_user=request.user, to_user=friend).first()
+        print(0)
+        # Если записи нет, то проверяем, есть ли обратная заявка
+        if not friend_request:
+            print(15)
+            # Если есть обратная заявка, то принимаем ее, добавляем в друзья и удаляем из базы данных
+            reverse_request = FriendRequest.objects.filter(from_user=friend, to_user=request.user).first()
+            if reverse_request:
+                reverse_request.accept()
+                reverse_request.delete()
+                return redirect('profile')
+                print(1)
+            # Иначе ничего не делаем и перенаправляем на профиль
+            else:
+                FriendRequest.objects.create(from_user=request.user, to_user=friend)
+                return redirect('profile')
         # Иначе показываем сообщение об ошибке
         else:
             return HttpResponse('Такая заявка уже существует')
     else:
         friends = User.objects.all()
+        print(6)
         return render(request, 'add_friend.html', {'friends': friends})
 
 def delete_friend(request, friend_id):
-    friend = get_object_or_404(Friend, current_user=request.user)
-    friend.users.remove(friend_id)
+    # Получаем объект друга по его id
+    friend = get_object_or_404(User, id=friend_id)
+    # Удаляем текущего пользователя из друзей друга
+    Friend.lose_friend(friend, request.user)
+    # Удаляем друга из друзей текущего пользователя
+    Friend.lose_friend(request.user, friend)
     return redirect('profile')
 
 def friend_request_status(request, name):

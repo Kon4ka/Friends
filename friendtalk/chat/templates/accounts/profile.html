@@ -5,7 +5,7 @@
 <ul>
 {% for friend in friends %}
     <li>{{ friend.username }}</li>
-<a class="btn" href="/accounts/delete/{{ friend.id }}/">Отклонить</a>
+<a class="btn" href="/accounts/delete/{{ friend.id }}/">Убрать из друзей</a>
 {% endfor %}
 <div class="btn-group">
 <button onclick="window.location.href='/accounts/requests'">Запросы на дружбу</button>
