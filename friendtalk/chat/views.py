@@ -1,10 +1,10 @@
 # -*- coding: utf-8 -*-
 from django.contrib.auth.decorators import login_required
-from django.http import HttpResponse
+from django.http import HttpResponse, HttpResponseNotAllowed
 from django.views import View
 from django.views.generic.edit import CreateView, UpdateView
 from django.urls import reverse_lazy
-from django.shortcuts import render, redirect
+from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.models import User
 from .models import FriendRequest, FriendRequest, Friend
 from django.contrib.auth import authenticate, login
@@ -15,6 +15,7 @@ from django.views.generic import ListView
 from django.contrib.auth.mixins import LoginRequiredMixin
 from .forms import RegisterUserForm
 
+
 class RegisterUser(CreateView):
     form_class = RegisterUserForm
     template_name = "register.html"
@@ -24,12 +25,58 @@ def add_friend(request):
     if request.method == 'POST':
         friend_id = request.POST.get('friend_id')
         friend = User.objects.get(id=friend_id)
-        FriendRequest.objects.create(from_user=request.user, to_user=friend)
-        return redirect('home')
+        # Проверяем, есть ли уже такая запись в базе данных
+        friend_request, created = FriendRequest.objects.get_or_create(from_user=request.user, to_user=friend)
+        # Если запись была создана, то перенаправляем на профиль
+        if created:
+            return redirect('profile')
+        # Иначе показываем сообщение об ошибке
+        else:
+            return HttpResponse('Такая заявка уже существует')
     else:
         friends = User.objects.all()
         return render(request, 'add_friend.html', {'friends': friends})
 
+def delete_friend(request, friend_id):
+    friend = get_object_or_404(Friend, current_user=request.user)
+    friend.users.remove(friend_id)
+    return redirect('profile')
+
+def friend_request_status(request, name):
+    # Ищем пользователя по имени
+    try:
+        user = User.objects.get(username=name)
+    except User.DoesNotExist:
+        return HttpResponse("Пользователь не найден")
+    # Ищем заявку на дружбу от или к этому пользователю
+    try:
+        friend_request = FriendRequest.objects.filter(from_user=user).first() or FriendRequest.objects.filter(to_user=user).first()
+    except FriendRequest.DoesNotExist:
+        friend_request = None
+    # Определяем статус заявки
+    if friend_request is None:
+        status = "Не отправлена"
+    elif not friend_request.status:
+        status = "На рассмотрении"
+    else:
+        status = "Вы друзья"
+    # Отдаем статус в html
+    print(request.user,user )
+    return render(request, 'friend_request_status.html', {'current_user': request.user, 'friend_user': user, 'status': status})
+
+class AcceptFriendRequestView(LoginRequiredMixin, View):
+    def get(self, request, q):
+        # Получаем параметр q из url
+        friend_id = q
+        # print(friend_id)
+        # # Ищем заявку в друзья в базе данных по id отправителя и получателя
+        friend_request = get_object_or_404(FriendRequest, from_user=friend_id, to_user=request.user, status=False)
+        # # Принимаем заявку в друзья
+        friend_request.accept()
+        # # Добавляем запись в таблице Friends
+        Friend.make_friend(request.user, friend_request.from_user)
+        # Перенаправляем пользователя на страницу с друзьями
+        return redirect('profile')
 
 class LoginFormView(LoginView):
     form_class = AuthenticationForm
@@ -84,4 +131,45 @@ class FriendRequestListView(ListView):
 
   def get_queryset(self):
     # Этот метод фильтрует запросы по получателю, который является текущим пользователем
-    return FriendRequest.objects.filter(to_user=self.request.user)
+    # и по статусу, который равен True (открыт)
+    return FriendRequest.objects.filter(to_user=self.request.user, status=False)
+
+def decline_request_view(request, request_id):
+    # Эта вьюшка отклоняет заявку в друзья по ее id
+    if request.method == 'GET':
+        print(request_id)
+        # Получаем заявку из базы данных или возвращаем 404
+        friend_request = get_object_or_404(FriendRequest, from_user=request_id)
+        # Проверяем, что получатель заявки является текущим пользователем
+        if friend_request.to_user == request.user:
+            # Отклоняем заявку
+            friend_request.delete()
+        # Перенаправляем на страницу входящих заявок
+        return redirect('requests')
+    else:
+        # Если метод не POST, то показываем ошибку 405
+        return HttpResponseNotAllowed(['GET'])
+
+
+class OutRequestsView(ListView):
+    # Этот класс наследует от ListView и отображает список исходящих заявок от текущего пользователя
+    model = FriendRequest # Указываем модель, из которой берем данные
+    template_name = 'out_requests.html' # Указываем шаблон, который используем для отображения
+    context_object_name = 'out_requests' # Указываем имя переменной, которая будет содержать список заявок
+
+    def get_queryset(self):
+        # Этот метод фильтрует заявки по отправителю, который является текущим пользователем
+        return FriendRequest.objects.filter(from_user=self.request.user)
+
+    def post(self, request, *args, **kwargs):
+        # Этот метод обрабатывает POST-запрос на удаление заявки
+        # Получаем id заявки из POST-данных
+        request_id = request.POST.get('request_id')
+        # Получаем заявку из базы данных
+        friend_request = FriendRequest.objects.get(id=request_id)
+        # Проверяем, что отправитель заявки является текущим пользователем
+        if friend_request.from_user == request.user:
+            # Удаляем заявку из базы данных
+            friend_request.delete()
+        # Перенаправляем на страницу исходящих заявок
+        return redirect('out_requests')

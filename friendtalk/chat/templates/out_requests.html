@@ -1,0 +1,19 @@
+{% extends "base_site.html" %}
+{% block content %}
+<h1>Исходящие заявки в друзья</h1>
+<ul>
+  {% for out_request in out_requests %}
+  <li>
+    <!-- Отображаем имя и id получателя запроса -->
+    {{ out_request.to_user.username }} ({{ out_request.to_user.id }})
+    <!-- Отображаем кнопку, которая посылает POST-запрос на удаление заявки -->
+    <form action="/accounts/out-requests/" method="POST">
+      {% csrf_token %}
+      <!-- Передаем id заявки в скрытом поле -->
+      <input type="hidden" name="request_id" value="{{ out_request.id }}">
+      <input type="submit" value="Отозвать заявку">
+    </form>
+  </li>
+  {% endfor %}
+</ul>
+{% endblock content %}

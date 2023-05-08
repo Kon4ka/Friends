@@ -7,7 +7,9 @@
     <!-- Отображаем имя и id отправителя запроса -->
     {{ friend_request.from_user.username }} ({{ friend_request.from_user.id }})
     <!-- Отображаем кнопку, которая посылает запрос на подтверждение дружбы -->
-    <a class="btn" href="/accounts/requests/accept?q={{ friend_request.from_user.id }}">Принять</a>
+    <a class="btn" href="/accounts/requests/accept/{{ friend_request.from_user.id }}/">Принять</a>
+    <!-- Отображаем кнопку, которая посылает POST-запрос на отклонение заявки -->
+    <a class="btn" href="/accounts/requests/decline/{{ friend_request.from_user.id }}/">Отклонить</a>
   </li>
   {% endfor %}
 </ul>

@@ -5,9 +5,11 @@
 <body>
   <div id="header">
     <ul id="menu">
-      <li><a href="/">Главная</a></li>
+      <li><a href="/accounts/profile">Профиль</a></li>
       <li><a href="/register/">Регистрация</a></li>
       <li><a href="/login/">Вход</a></li>
+      <li><a href="/add-friend/">Отправить запрос</a></li>
+      <li><a href="/accounts/out-requests/">Исходящие запросы</a></li>
     </ul>
   </div>
   <div id="content">
@@ -15,9 +17,9 @@
     {% endblock content %}
   </div>
   <div id="footer">
-    <p>© 2021 Все права защищены</p>
     {% if user.is_authenticated %}
       <p>Текущий пользователь: {{ user.username }}</p>
+    <p>© 2023 Kon4ka</p>
     {% endif %}
   </div>
 </body>

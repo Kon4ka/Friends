@@ -17,7 +17,8 @@ Including another URLconf
 from django.contrib import admin
 from django.urls import path
 from django.contrib.auth import views as auth_views
-from chat.views import RegisterUser, ProfileView, add_friend, FriendRequestListView
+from chat.views import RegisterUser, ProfileView, add_friend, FriendRequestListView, AcceptFriendRequestView, \
+    OutRequestsView, decline_request_view, delete_friend, friend_request_status
 
 
 urlpatterns = [
@@ -27,5 +28,11 @@ urlpatterns = [
     path('add-friend/', add_friend, name='add_friend'),
     path('accounts/profile/', ProfileView.as_view(), name ='profile'),
     path('accounts/requests/', FriendRequestListView.as_view(), name='requests'),
+    path('accounts/requests/accept/<int:q>/', AcceptFriendRequestView.as_view() , name='accept'),
+    path('accounts/out-requests/', OutRequestsView.as_view(), name='out_requests'),
+    path('accounts/requests/decline/<int:request_id>/', decline_request_view, name='decline_request'),
+    path('accounts/delete/<int:friend_id>/', delete_friend, name='delete_friend'),
+    path('accounts/<str:name>/', friend_request_status, name='status'),
+
 
 ]
