@@ -17,7 +17,7 @@ Including another URLconf
 from django.contrib import admin
 from django.urls import path
 from django.contrib.auth import views as auth_views
-from chat.views import RegisterUser, ProfileView, add_friend
+from chat.views import RegisterUser, ProfileView, add_friend, FriendRequestListView
 
 
 urlpatterns = [
@@ -26,5 +26,6 @@ urlpatterns = [
     path("register/", RegisterUser.as_view(), name="register"),
     path('add-friend/', add_friend, name='add_friend'),
     path('accounts/profile/', ProfileView.as_view(), name ='profile'),
+    path('accounts/requests/', FriendRequestListView.as_view(), name='requests'),
 
 ]

@@ -1,0 +1,14 @@
+{% extends "base_site.html" %}
+{% block content %}
+<h1>Запросы в друзья</h1>
+<ul>
+  {% for friend_request in friend_requests %}
+  <li>
+    <!-- Отображаем имя и id отправителя запроса -->
+    {{ friend_request.from_user.username }} ({{ friend_request.from_user.id }})
+    <!-- Отображаем кнопку, которая посылает запрос на подтверждение дружбы -->
+    <a class="btn" href="/accounts/requests/accept?q={{ friend_request.from_user.id }}">Принять</a>
+  </li>
+  {% endfor %}
+</ul>
+{% endblock content %}

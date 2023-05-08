@@ -75,3 +75,13 @@ class ProfileView(ListView):
         else:
             friends = []
         return friends
+
+class FriendRequestListView(ListView):
+  # Этот класс наследует от ListView и отображает список запросов в друзья для текущего пользователя
+  model = FriendRequest # Указываем модель, из которой берем данные
+  template_name = 'friend_request_list.html' # Указываем шаблон, который используем для отображения
+  context_object_name = 'friend_requests' # Указываем имя переменной, которая будет содержать список запросов
+
+  def get_queryset(self):
+    # Этот метод фильтрует запросы по получателю, который является текущим пользователем
+    return FriendRequest.objects.filter(to_user=self.request.user)
