@@ -6,6 +6,11 @@ from django.views.generic.edit import CreateView, UpdateView
 from django.urls import reverse_lazy
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.models import User
+from rest_framework import viewsets, status, generics
+from rest_framework.authtoken.views import AuthToken
+from rest_framework.decorators import action
+from rest_framework.response import Response
+
 from .models import FriendRequest, FriendRequest, Friend
 from django.contrib.auth import authenticate, login
 from django.contrib.auth.forms import AuthenticationForm
@@ -14,10 +19,12 @@ from django.views.generic.edit import FormView
 from django.views.generic import ListView
 from django.contrib.auth.mixins import LoginRequiredMixin
 from .forms import RegisterUserForm
+from .serializers import FriendSerializer, UserSerializer, RegisterUserSerializer, LoginSerializer, \
+    FriendRequestSerializer
 
 
-class RegisterUser(CreateView):
-    form_class = RegisterUserForm
+class RegisterUser(generics.CreateAPIView):
+    form_class = RegisterUserSerializer
     template_name = "register.html"
     success_url = reverse_lazy("login")
 
@@ -27,17 +34,14 @@ def add_friend(request):
         friend = User.objects.get(id=friend_id)
         # Проверяем, есть ли уже такая запись в базе данных
         friend_request = FriendRequest.objects.filter(from_user=request.user, to_user=friend).first()
-        print(0)
         # Если записи нет, то проверяем, есть ли обратная заявка
         if not friend_request:
-            print(15)
             # Если есть обратная заявка, то принимаем ее, добавляем в друзья и удаляем из базы данных
             reverse_request = FriendRequest.objects.filter(from_user=friend, to_user=request.user).first()
             if reverse_request:
                 reverse_request.accept()
                 reverse_request.delete()
                 return redirect('profile')
-                print(1)
             # Иначе ничего не делаем и перенаправляем на профиль
             else:
                 FriendRequest.objects.create(from_user=request.user, to_user=friend)
@@ -47,39 +51,47 @@ def add_friend(request):
             return HttpResponse('Такая заявка уже существует')
     else:
         friends = User.objects.all()
-        print(6)
         return render(request, 'add_friend.html', {'friends': friends})
 
-def delete_friend(request, friend_id):
-    # Получаем объект друга по его id
-    friend = get_object_or_404(User, id=friend_id)
-    # Удаляем текущего пользователя из друзей друга
-    Friend.lose_friend(friend, request.user)
-    # Удаляем друга из друзей текущего пользователя
-    Friend.lose_friend(request.user, friend)
-    return redirect('profile')
+class FriendViewSet(viewsets.ModelViewSet):
+    queryset = Friend.objects.all()
+    serializer_class = FriendSerializer
 
-def friend_request_status(request, name):
-    # Ищем пользователя по имени
-    try:
-        user = User.objects.get(username=name)
-    except User.DoesNotExist:
-        return HttpResponse("Пользователь не найден")
-    # Ищем заявку на дружбу от или к этому пользователю
-    try:
-        friend_request = FriendRequest.objects.filter(from_user=user).first() or FriendRequest.objects.filter(to_user=user).first()
-    except FriendRequest.DoesNotExist:
-        friend_request = None
-    # Определяем статус заявки
-    if friend_request is None:
-        status = "Не отправлена"
-    elif not friend_request.status:
-        status = "На рассмотрении"
-    else:
-        status = "Вы друзья"
-    # Отдаем статус в html
-    print(request.user,user )
-    return render(request, 'friend_request_status.html', {'current_user': request.user, 'friend_user': user, 'status': status})
+    @action(detail=True, methods=['post'])
+    def delete_friend(self, request, pk=None):
+        # Получаем объект друга по его id
+        friend = self.get_object()
+        # Удаляем текущего пользователя из друзей друга
+        Friend.lose_friend(friend, request.user)
+        # Удаляем друга из друзей текущего пользователя
+        Friend.lose_friend(request.user, friend)
+        # Возвращаем ответ с кодом 204 (No Content)
+        return Response(status=status.HTTP_204_NO_CONTENT)
+
+class UserViewSet(viewsets.ModelViewSet):
+    queryset = User.objects.all()
+    serializer_class = UserSerializer
+
+    @action(detail=True, methods=['get'])
+    def friend_request_status(self, request, pk=None):
+        # Ищем пользователя по его id
+        user = self.get_object()
+        # Ищем заявку на дружбу от или к этому пользователю
+        friend_request = FriendRequest.objects.filter(from_user=user).first() or FriendRequest.objects.filter(
+            to_user=user).first()
+        # Определяем статус заявки
+        if friend_request is None:
+            status = "Не отправлена"
+        elif not friend_request.status:
+            status = "На рассмотрении"
+        else:
+            status = "Вы друзья"
+        # Отдаем статус в JSON
+        return Response({'current_user': request.user.id, 'friend_user': user.id, 'status': status})
+
+class FriendRequestViewSet(viewsets.ModelViewSet):
+    queryset = FriendRequest.objects.all()
+    serializer_class = FriendRequestSerializer
 
 class AcceptFriendRequestView(LoginRequiredMixin, View):
     def get(self, request, q):
@@ -95,10 +107,14 @@ class AcceptFriendRequestView(LoginRequiredMixin, View):
         # Перенаправляем пользователя на страницу с друзьями
         return redirect('profile')
 
-class LoginFormView(LoginView):
-    form_class = AuthenticationForm
+class LoginFormView(ObtainAuthToken):
+    form_class = LoginSerializer
     template_name = "login.html"
     success_url = reverse_lazy("home")
+
+    def get(self, request, *args, **kwargs):
+        serializer = self.form_class()  # создаем экземпляр сериализатора
+        return render(request, self.template_name, {'serializer': serializer})
 
 class CustomLoginFormView(FormView):
     form_class = AuthenticationForm
@@ -115,30 +131,23 @@ class CustomLoginFormView(FormView):
         else:
             return self.form_invalid(form)
 
-class ProfileView(ListView):
-    # Указываем модель, из которой берем данные
-    model = User
-    # Указываем шаблон, в который передаем данные
-    template_name = 'accounts/profile.html'
-    # Указываем имя переменной, в которой хранятся данные
-    context_object_name = 'friends'
+class ProfileView(generics.ListAPIView):
+    serializer_class = UserSerializer # сериализатор для модели User
+    template_name = 'accounts/profile.html' # шаблон для отображения списка друзей
 
     def get_queryset(self):
         # Получаем текущего пользователя
-        # print((self.request.user))
-        try:
-            friend = Friend.objects.get(current_user=self.request.user)
-            friends = friend.users.all()
-        except Friend.DoesNotExist:
-            friends = []
-
+        user = self.request.user
         # Используем метод filter вместо get
-        friend = Friend.objects.filter(current_user=self.request.user).first()
+        friend = Friend.objects.filter(current_user=user).first()
         if friend:
             friends = friend.users.all()
         else:
             friends = []
         return friends
+    @classmethod
+    def get_extra_actions(cls):
+        return []
 
 class FriendRequestListView(ListView):
   # Этот класс наследует от ListView и отображает список запросов в друзья для текущего пользователя
@@ -154,7 +163,6 @@ class FriendRequestListView(ListView):
 def decline_request_view(request, request_id):
     # Эта вьюшка отклоняет заявку в друзья по ее id
     if request.method == 'GET':
-        print(request_id)
         # Получаем заявку из базы данных или возвращаем 404
         friend_request = get_object_or_404(FriendRequest, from_user=request_id)
         # Проверяем, что получатель заявки является текущим пользователем

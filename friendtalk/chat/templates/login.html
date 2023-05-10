@@ -1,0 +1,10 @@
+{% extends "base_site.html" %}
+{% load rest_framework %}
+{% block content %}
+<h1>Вход</h1>
+<form action="{% url 'login' %}" method="post">
+    {% csrf_token %}
+    {% render_form serializer %}
+    <input type="submit" value="Войти">
+</form>
+{% endblock %}

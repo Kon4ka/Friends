@@ -27,8 +27,11 @@ class FriendRequest(models.Model):
         # Удаляем заявку из базы данных
         super().delete()
 
+    def __str__(self):
+        return f"{self.from_user} -> {self.to_user}"
+
 class Friend(models.Model):
-    users = models.ManyToManyField(User)
+    users = models.ManyToManyField(User, related_name='friends')
     current_user = models.ForeignKey(User, related_name='owner', null=True, on_delete=models.CASCADE)
 
     @classmethod
