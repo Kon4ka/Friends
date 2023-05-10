@@ -373,12 +373,12 @@ def decline_request_view(request, request_id):
         return HttpResponseNotAllowed(['GET'])
 
 
-class OutRequestsView(ListAPIView):
+class OutRequestsView(ListView):
     # Этот класс наследует от ListView и отображает список исходящих заявок от текущего пользователя
     model = FriendRequest # Указываем модель, из которой берем данные
     template_name = 'out_requests.html' # Указываем шаблон, который используем для отображения
     context_object_name = 'out_requests' # Указываем имя переменной, которая будет содержать список заявок
-    serializer_class = FriendRequestSerializer
+    # serializer_class = FriendRequestSerializer
 
     @swagger_auto_schema(
         operation_description="Получить список исходящих заявок от текущего пользователя",

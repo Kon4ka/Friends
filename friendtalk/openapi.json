@@ -1,0 +1,404 @@
+{
+  "swagger": "2.0",
+  "info": {
+    "title": "Friends",
+    "description": "A simple API for my project",
+    "termsOfService": "https://github.com/Kon4ka/Friends",
+    "contact": {
+      "email": "lira0sirin@yandex.ru"
+    },
+    "license": {
+      "name": "BSD License"
+    },
+    "version": "v1"
+  },
+  "host": "localhost:8000",
+  "schemes": [
+    "http"
+  ],
+  "basePath": "/",
+  "consumes": [
+    "application/json"
+  ],
+  "produces": [
+    "application/json"
+  ],
+  "securityDefinitions": {
+    "Bearer": {
+      "type": "apiKey",
+      "name": "Authorization",
+      "in": "header"
+    }
+  },
+  "security": [
+    {
+      "Bearer": []
+    }
+  ],
+  "paths": {
+    "/accounts/delete/{friend_id}/": {
+      "delete": {
+        "operationId": "accounts_delete_delete",
+        "description": "Delete a friend",
+        "parameters": [
+          {
+            "name": "friend_id",
+            "in": "path",
+            "description": "The id of the user to delete as a friend",
+            "type": "integer",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "msg": {
+                  "description": "A message indicating the result of the operation",
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found"
+          }
+        },
+        "tags": [
+          "accounts"
+        ]
+      },
+      "parameters": [
+        {
+          "name": "friend_id",
+          "in": "path",
+          "required": true,
+          "type": "string"
+        }
+      ]
+    },
+    "/accounts/profile/": {
+      "get": {
+        "operationId": "accounts_profile_list",
+        "description": "",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "",
+            "schema": {
+              "type": "array",
+              "items": {
+                "$ref": "#/definitions/User"
+              }
+            }
+          }
+        },
+        "tags": [
+          "accounts"
+        ]
+      },
+      "parameters": []
+    },
+    "/accounts/requests/": {
+      "get": {
+        "operationId": "accounts_requests_list",
+        "description": "",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "",
+            "schema": {
+              "type": "array",
+              "items": {
+                "$ref": "#/definitions/FriendRequest"
+              }
+            }
+          }
+        },
+        "tags": [
+          "accounts"
+        ]
+      },
+      "parameters": []
+    },
+    "/accounts/requests/decline/{request_id}/": {
+      "get": {
+        "operationId": "accounts_requests_decline_read",
+        "description": "Отклонить заявку в друзья по ее id",
+        "parameters": [
+          {
+            "name": "request_id",
+            "in": "path",
+            "description": "Идентификатор заявки",
+            "type": "integer",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Вы успешно отклонили заявку",
+            "schema": {
+              "type": "object"
+            }
+          },
+          "404": {
+            "description": "Заявка с таким идентификатором не найдена",
+            "schema": {
+              "type": "object"
+            }
+          },
+          "401": {
+            "description": "Вы не авторизованы",
+            "schema": {
+              "type": "object"
+            }
+          },
+          "405": {
+            "description": "Метод не поддерживается",
+            "schema": {
+              "type": "object"
+            }
+          }
+        },
+        "tags": [
+          "accounts"
+        ]
+      },
+      "post": {
+        "operationId": "accounts_requests_decline_create",
+        "description": "",
+        "parameters": [],
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "accounts"
+        ]
+      },
+      "parameters": [
+        {
+          "name": "request_id",
+          "in": "path",
+          "required": true,
+          "type": "string"
+        }
+      ]
+    },
+    "/accounts/{name}/": {
+      "get": {
+        "operationId": "accounts_read",
+        "description": "Get the friend request status for a user",
+        "parameters": [
+          {
+            "name": "name",
+            "in": "path",
+            "description": "The username of the user to check the friend request status for",
+            "type": "string",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "current_user": {
+                  "description": "The username of the current user",
+                  "type": "string"
+                },
+                "friend_user": {
+                  "description": "The username of the friend user",
+                  "type": "string"
+                },
+                "status": {
+                  "description": "The friend request status",
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found"
+          }
+        },
+        "tags": [
+          "accounts"
+        ]
+      },
+      "parameters": [
+        {
+          "name": "name",
+          "in": "path",
+          "required": true,
+          "type": "string"
+        }
+      ]
+    },
+    "/add-friend/": {
+      "get": {
+        "operationId": "add-friend_list",
+        "description": "",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "add-friend"
+        ]
+      },
+      "post": {
+        "operationId": "add-friend_create",
+        "description": "",
+        "parameters": [],
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "add-friend"
+        ]
+      },
+      "parameters": []
+    },
+    "/register/": {
+      "post": {
+        "operationId": "register_create",
+        "description": "Register a new user",
+        "parameters": [
+          {
+            "name": "data",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "required": [
+                "username",
+                "email",
+                "password"
+              ],
+              "type": "object",
+              "properties": {
+                "username": {
+                  "type": "string"
+                },
+                "email": {
+                  "type": "string",
+                  "format": "email"
+                },
+                "password": {
+                  "type": "string",
+                  "format": "password"
+                }
+              }
+            }
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "Created",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "id": {
+                  "type": "integer"
+                },
+                "username": {
+                  "type": "string"
+                },
+                "email": {
+                  "type": "string",
+                  "format": "email"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request"
+          }
+        },
+        "tags": [
+          "register"
+        ]
+      },
+      "parameters": []
+    }
+  },
+  "definitions": {
+    "User": {
+      "required": [
+        "username"
+      ],
+      "type": "object",
+      "properties": {
+        "id": {
+          "title": "ID",
+          "type": "integer",
+          "readOnly": true
+        },
+        "username": {
+          "title": "Username",
+          "description": "Required. 150 characters or fewer. Letters, digits and @/./+/-/_ only.",
+          "type": "string",
+          "pattern": "^[\\w.@+-]+$",
+          "maxLength": 150,
+          "minLength": 1
+        },
+        "email": {
+          "title": "Email address",
+          "type": "string",
+          "format": "email",
+          "maxLength": 254
+        },
+        "first_name": {
+          "title": "First name",
+          "type": "string",
+          "maxLength": 150
+        },
+        "last_name": {
+          "title": "Last name",
+          "type": "string",
+          "maxLength": 150
+        }
+      }
+    },
+    "FriendRequest": {
+      "required": [
+        "from_user",
+        "to_user"
+      ],
+      "type": "object",
+      "properties": {
+        "id": {
+          "title": "ID",
+          "type": "integer",
+          "readOnly": true
+        },
+        "from_user": {
+          "title": "From user",
+          "type": "integer"
+        },
+        "to_user": {
+          "title": "To user",
+          "type": "integer"
+        },
+        "timestamp": {
+          "title": "Timestamp",
+          "type": "string",
+          "format": "date-time",
+          "readOnly": true
+        },
+        "status": {
+          "title": "Status",
+          "type": "boolean"
+        }
+      }
+    }
+  }
+}

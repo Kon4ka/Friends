@@ -145,7 +145,9 @@ SWAGGER_SETTINGS = {
     'DISPLAY_REQUEST_DURATION': True,
     'PERSIST_AUTH': True,
     'SHOW_EXTENSIONS': True,
+    'DEFAULT_INFO': 'friendtalk.urls.schema_view',
 }
+
 
 REDOC_SETTINGS = {
     'LAZY_RENDERING': False,
