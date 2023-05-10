@@ -1,0 +1,42 @@
+version: '3'
+
+services:
+  db:
+    image: postgres
+
+    environment:
+      POSTGRES_DB: chatdb
+      POSTGRES_USER: test_user
+      POSTGRES_PASSWORD: 1234
+      PGDATA: /var/lib/postgresql/data
+    volumes:
+        - ./pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: [ "CMD-SHELL", "echo 'SELECT 1;' | psql -U test_user -d test_user_db" ]
+      interval: 3s
+      timeout: 5s
+    restart: unless-stopped
+    ports:
+      - "5432:5432"
+    networks:
+      - db
+
+  friendtalk:
+    build: .
+    command: sh -c "python3 manage.py migrate && python3 manage.py runserver 0.0.0.0:8000"
+    ports:
+      - "8081:8000"
+    networks:
+      - db
+    depends_on:
+      db:
+        condition: service_healthy
+    healthcheck:
+      test: [ "CMD", "curl", "--fail", "http://localhost:8000/" ]
+      interval: 3s
+      timeout: 5s
+    restart: unless-stopped
+
+networks:
+    db:
+      driver: bridge
