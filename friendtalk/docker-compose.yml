@@ -12,7 +12,7 @@ services:
     volumes:
         - ./pgdata:/var/lib/postgresql/data
     healthcheck:
-      test: [ "CMD-SHELL", "echo 'SELECT 1;' | psql -U test_user -d test_user_db" ]
+      test: [ "CMD-SHELL", "echo 'SELECT 1;' | psql -U test_user -d chatdb" ]
       interval: 3s
       timeout: 5s
     restart: unless-stopped
@@ -25,7 +25,7 @@ services:
     build: .
     command: sh -c "python3 manage.py migrate && python3 manage.py runserver 0.0.0.0:8000"
     ports:
-      - "8081:8000"
+      - "8000:8000"
     networks:
       - db
     depends_on:

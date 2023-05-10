@@ -14,7 +14,19 @@ class UserSerializer(serializers.ModelSerializer):
     # Этот класс наследует от ModelSerializer и автоматически генерирует поля по модели
     class Meta:
         model = User # Указываем модель, для которой создаем сериализатор
-        fields = ['id', 'username', 'email', 'first_name', 'last_name'] # Указываем, какие поля модели хотим сериализовать
+        fields = ['id', 'username', 'email', 'first_name'] # Указываем, какие поля модели хотим сериализовать
+
+class UserSerializerPassword(serializers.ModelSerializer):
+    class Meta:
+        model = User
+        fields = ['id', 'username', 'email', 'password']
+        extra_kwargs = {'password': {'write_only': True}}
+
+    def create(self, validated_data):
+        user = User.objects.create_user(**validated_data)
+        user.set_password(validated_data['password'])
+        user.save()
+        return user
 
 class FriendSerializer(serializers.ModelSerializer):
     users = UserSerializer(many=True, read_only=True)

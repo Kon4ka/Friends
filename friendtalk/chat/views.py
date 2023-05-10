@@ -23,17 +23,15 @@ from django.views.generic.edit import FormView
 from django.views.generic import ListView
 from django.contrib.auth.mixins import LoginRequiredMixin
 from .forms import RegisterUserForm
-from .schemas import RegisterUserFormSchema, RegisterUserResponseSchema, AddFriendResponseSchema, FriendRequestSchema, \
-    DeleteFriendResponseSchema, PathParameterSchema, FriendRequestStatusResponseSchema, \
-    AcceptFriendRequestResponseSchema, LoginResponseSchema, LoginFormSchema, ProfileViewSchema, \
-    FriendRequestListViewSchema, OutRequestsListSchema, PostParameterSchema
-from .serializers import FriendRequestSerializer, UserSerializer
+from .serializers import FriendRequestSerializer, UserSerializer, UserSerializerPassword
 
 
 class RegisterUser(generics.CreateAPIView):
     form_class = RegisterUserForm
     template_name = "register.html"
     success_url = reverse_lazy("login")
+    serializer_class = UserSerializerPassword
+
     @swagger_auto_schema(
         operation_description="Register a new user",
         request_body=openapi.Schema(
@@ -224,6 +222,7 @@ class LoginFormView(ObtainAuthToken):
     form_class = AuthenticationForm
     template_name = "login.html"
     success_url = reverse_lazy("home")
+    serializer_class = UserSerializerPassword
 
     @swagger_auto_schema(
         method='post',

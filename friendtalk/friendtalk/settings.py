@@ -82,7 +82,7 @@ DATABASES = {
         'NAME': 'chatdb',
         'USER': 'test_user',
         'PASSWORD': '1234',
-        'HOST': 'db',
+        'HOST': 'db', #db
         'PORT': '5432',
     }
 }
