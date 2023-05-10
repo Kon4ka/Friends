@@ -23,7 +23,7 @@ services:
 
   friendtalk:
     build: .
-    command: sh -c "python3 manage.py migrate && python3 manage.py runserver 0.0.0.0:8000"
+    command: sh -c "python3 manage.py migrate && python3 manage.py createsuperuser --noinput --username admin --email admin@example.com && python3 manage.py runserver 0.0.0.0:8000"
     ports:
       - "8000:8000"
     networks:
@@ -36,6 +36,8 @@ services:
       interval: 3s
       timeout: 5s
     restart: unless-stopped
+    environment:
+      - DJANGO_SUPERUSER_PASSWORD=password
 
 networks:
     db:
