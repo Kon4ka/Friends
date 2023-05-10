@@ -37,6 +37,8 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'drf_yasg',
+    'rest_framework',
     'chat'
 ]
 
@@ -126,3 +128,29 @@ STATIC_URL = 'static/'
 # https://docs.djangoproject.com/en/4.2/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+SWAGGER_SETTINGS = {
+    'USE_SESSION_AUTH': False,
+    'SECURITY_DEFINITIONS': {
+        'Bearer': {
+            'type': 'apiKey',
+            'name': 'Authorization',
+            'in': 'header'
+        }
+    },
+    'DOC_EXPANSION': 'list',
+    'DEFAULT_MODEL_DEPTH': 1,
+    'DEFAULT_MODEL_RENDERING': 'example',
+    'DISPLAY_OPERATION_ID': True,
+    'DISPLAY_REQUEST_DURATION': True,
+    'PERSIST_AUTH': True,
+    'SHOW_EXTENSIONS': True,
+}
+
+REDOC_SETTINGS = {
+    'LAZY_RENDERING': False,
+    'HIDE_HOSTNAME': False,
+    'EXPAND_RESPONSES': '200',
+    'PATH_IN_MIDDLE_PANEL': True,
+    'NATIVE_SCROLLBARS': True,
+}
